@@ -5,17 +5,24 @@
 
 int main(void)
 {
-    int *x;
+    int *x = NULL;
     
     iniciaAlocador();
 
-    x = alocaMem(256);
-    for (int i = 0; i < 256; ++i)
+    x = alocaMem(4);
+    printf("%p\n", (void *)x);
+
+    for (int i = 0; i < 4; ++i)
         x[i] = i;
-#if 0
+
+    x = alocaMem(10);
+    printf("%p\n", (void *)x);
+
+    for (int i = 0; i < 10; ++i)
+        x[i] = i;
+
     liberaMem(x);
     finalizaAlocador();
-#endif
 
     return EXIT_SUCCESS;
 }
