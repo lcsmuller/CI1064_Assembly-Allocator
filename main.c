@@ -5,6 +5,7 @@
 
 int main(void)
 {
+#if 0
     int *x = NULL;
     
     iniciaAlocador();
@@ -23,6 +24,21 @@ int main(void)
 
     liberaMem(x);
     finalizaAlocador();
+#else
+    void *a, *b;
+
+    iniciaAlocador();
+    imprimeMapa();
+    a=alocaMem(10);
+    imprimeMapa();
+    b=alocaMem(15);
+    imprimeMapa();
+    liberaMem(a);
+    imprimeMapa();
+    a=alocaMem(7);
+    imprimeMapa();
+    liberaMem(b);
+#endif
 
     return EXIT_SUCCESS;
 }

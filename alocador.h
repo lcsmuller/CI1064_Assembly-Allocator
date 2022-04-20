@@ -39,4 +39,15 @@ void *alocaMem(int num_bytes);
  */
 int liberaMem(void *block);
 
+/**
+ * @brief Imprime um mapa e memória da região da heap
+ *
+ * Cada byte da parte gerencial do nó deve ser impresso
+ * com o caractere "#". O caractere usado para
+ * a impressão dos bytes do bloco de cada nó depende
+ * se o bloco estiver livre ou ocupado. Se estiver livre, imprime o
+ * caractere -". Se estiver ocupado, imprime o caractere "+".
+ */
+void imprimeMapa(void);
+
 #endif /* ALOCADOR_H */
