@@ -1,6 +1,9 @@
 #ifndef ALOCADOR_H
 #define ALOCADOR_H
 
+extern void *topoInicialHeap;
+extern long *prevAlloc;
+
 /**
  * @brief Inicializa alocador
  *

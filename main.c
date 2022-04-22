@@ -5,11 +5,10 @@
 
 int main(void)
 {
+    iniciaAlocador();
 #if 0
     int *x = NULL;
     
-    iniciaAlocador();
-
     x = alocaMem(4);
     printf("%p\n", (void *)x);
 
@@ -23,12 +22,11 @@ int main(void)
         x[i] = i;
 
     liberaMem(x);
-    finalizaAlocador();
 #else
     void *a, *b;
 
-    iniciaAlocador();
     imprimeMapa();
+#if 0
     a=alocaMem(10);
     imprimeMapa();
     b=alocaMem(15);
@@ -37,13 +35,9 @@ int main(void)
     imprimeMapa();
     liberaMem(a);
     imprimeMapa();
-#if 0
-    a=alocaMem(7);
-    imprimeMapa();
-    liberaMem(b);
-    imprimeMapa();
 #endif
 #endif
+    finalizaAlocador();
 
     return EXIT_SUCCESS;
 }
