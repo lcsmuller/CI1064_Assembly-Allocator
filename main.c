@@ -33,12 +33,16 @@ int main(void)
     imprimeMapa();
     b=alocaMem(15);
     imprimeMapa();
+    liberaMem(b);
+    imprimeMapa();
     liberaMem(a);
     imprimeMapa();
+#if 0
     a=alocaMem(7);
     imprimeMapa();
     liberaMem(b);
     imprimeMapa();
+#endif
 #endif
 
     return EXIT_SUCCESS;

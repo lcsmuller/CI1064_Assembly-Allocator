@@ -23,17 +23,13 @@ void *alocaMem(int num_bytes)
 
     while (segunda_tentativa <= 1) {
         while (tmp != topo) {
-            char *a = (char *)tmp;
-
             if (tmp[0] == 0L && tmp[1] >= num_bytes) {
                 tmp[0] = 1L;
-                /* TODO: transformar em macro */
-                a += 16 + tmp[1];
-                prevAlloc = (long *)a;
+                tmp = (long *)((char *)tmp + 16 + tmp[1]);
+                prevAlloc = tmp;
                 return &tmp[2];
             }
-            a += 16 + tmp[1];
-            tmp = (long *)a;
+            tmp = (long *)((char *)tmp + 16 + tmp[1]);
         }
         tmp = topoInicialHeap;
         ++segunda_tentativa;
@@ -53,16 +49,25 @@ void *alocaMem(int num_bytes)
 
 int liberaMem(void *block)
 {
+    long *topo = sbrk(0), *tmp = block;
     int ret = 0;
-    long *tmp = block;
+
     if (tmp[-2] == 1L) {
         tmp[-2] = 0L;
         ret = 1; 
     }
+
+    long *prev = topoInicialHeap, 
+         *next = (long *)((char *)prev + 16 + prev[1]);
+    while (prev != topo) {
+        if (prev[0] == 0L && next[0] == 0L)
+            prev[1] += next[1];
+        prev = next;
+        next = (long *)((char *)prev + 16 + prev[1]);
+    }
+
     prevAlloc = (long *)(tmp[-1] + (char*)tmp);
     return ret;
-
-    /* TODO: Juntar os blocos livres */
 }
 
 void imprimeMapa()
@@ -72,11 +77,9 @@ void imprimeMapa()
     char c;
 
     printf("imprimindo............\n");
-    fflush(stdout);
-
-    while(a != topoAtual){
+    while (a != topoAtual){
         printf("################");
-        if(a[0] == 1)
+        if (a[0] == 1)
             c = '+';
         else
             c = '-';
