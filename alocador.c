@@ -4,7 +4,7 @@
 
 static void *topoInicialHeap;
 static long *prevAlloc;
-
+#if 0
 void iniciaAlocador(void)
 {
     printf("\n");
@@ -15,7 +15,7 @@ void finalizaAlocador(void)
 {
     brk(topoInicialHeap);
 }
-
+#endif
 void *alocaMem(int num_bytes)
 {
     long *topo = sbrk(0), *tmp = prevAlloc;
@@ -61,6 +61,7 @@ void *alocaMem(int num_bytes)
     return tmp;
 }
 
+#if 0
 int liberaMem(void *block)
 {
     long *topo = sbrk(0), *tmp = block;
@@ -84,7 +85,7 @@ int liberaMem(void *block)
     return ret;
 }
 
-void imprimeMapa()
+void imprimeMapa(void)
 {
     long *a = topoInicialHeap;
     void *topoAtual = sbrk(0);
@@ -104,3 +105,4 @@ void imprimeMapa()
     }
     putchar('\n');
 }
+#endif

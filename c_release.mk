@@ -3,22 +3,20 @@ CC ?= gcc
 OBJS  := alocador.o
 MAIN := main
 
-CFLAGS  += -Wall -Wextra -Wpedantic -g
-LDFLAGS += -no-pie
+CFLAGS += -Wall -Wextra -Wpedantic -g
 
 all: $(MAIN)
 
 $(MAIN): $(MAIN).c $(OBJS)
-	$(CC) $(CFLAGS) alocador.c $^ -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@
 
 $(MAIN).c: ;
 
-.SUFFIXES:
-.SUFFIXES: .s .o
-.s.o: 
+.c.o: 
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
 	@ $(RM) *.o $(MAIN)
 
 .PHONY: clean
+
