@@ -1,11 +1,13 @@
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdio.h>
 
 static void *topoInicialHeap;
 static long *prevAlloc;
 
 void iniciaAlocador(void)
 {
+    printf("\n");
     prevAlloc = topoInicialHeap = sbrk(0);
 }
 
@@ -57,9 +59,31 @@ int liberaMem(void *block)
         tmp[-2] = 0L;
         ret = 1; 
     }
+    prevAlloc = (long *)(tmp[-1] + (char*)tmp);
     return ret;
+
+    /* TODO: Juntar os blocos livres */
 }
 
-void imprimeMapa(void)
+void imprimeMapa()
 {
+    long *a = topoInicialHeap;
+    void *topoAtual = sbrk(0);
+    char c;
+
+    printf("imprimindo............\n");
+    fflush(stdout);
+
+    while(a != topoAtual){
+        printf("################");
+        if(a[0] == 1)
+            c = '+';
+        else
+            c = '-';
+        for(int i = 0; i < a[1]; i++)
+            putchar(c);
+
+        a = (long *)((char *)a + 16 + a[1]);
+    }
+    putchar('\n');
 }

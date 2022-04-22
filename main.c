@@ -38,6 +38,7 @@ int main(void)
     a=alocaMem(7);
     imprimeMapa();
     liberaMem(b);
+    imprimeMapa();
 #endif
 
     return EXIT_SUCCESS;
