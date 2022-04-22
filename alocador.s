@@ -22,6 +22,7 @@ iniciaAlocador:
     movq $12, %rax             # No de syscall do brk
     syscall                    # brk(0)
     movq %rax, topoInicialHeap # topo da heap (retorno de brk)
+    movq %rax, prevAlloc       # prevAlloc := topoInicialHeap
 
     popq %rbp
     ret
