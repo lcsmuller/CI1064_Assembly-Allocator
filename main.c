@@ -29,20 +29,22 @@ int main(void)
 
     iniciaAlocador();
     imprimeMapa();
-    a=alocaMem(10);
+
+    a = alocaMem(100);
     imprimeMapa();
-    b=alocaMem(15);
+    
+    b = alocaMem(150);
     imprimeMapa();
-    liberaMem(b);
-    imprimeMapa();
+    
     liberaMem(a);
     imprimeMapa();
-#if 0
-    a=alocaMem(7);
+    
+    a = alocaMem(50);
     imprimeMapa();
+    
     liberaMem(b);
     imprimeMapa();
-#endif
+
 #endif
 
     return EXIT_SUCCESS;

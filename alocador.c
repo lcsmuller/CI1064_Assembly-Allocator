@@ -24,7 +24,21 @@ void *alocaMem(int num_bytes)
     while (segunda_tentativa <= 1) {
         while (tmp != topo) {
             if (tmp[0] == 0L && tmp[1] >= num_bytes) {
+                if (tmp[1] >= num_bytes + 16) {
+                    tmp[0] = 1L;
+
+                    long *novoBloco = (long *)((char *)tmp + 16 + num_bytes);
+                    novoBloco[0] = 0L;
+                    novoBloco[1] = tmp[1] - num_bytes - 16;
+                    
+                    tmp[1] = num_bytes;
+                    tmp = (long *)((char *)tmp + 16 + tmp[1]);
+                    prevAlloc = tmp;
+                    
+                    return &tmp[2];
+                }
                 tmp[0] = 1L;
+                // da pra tirar esse tmp e colocar prevAlloc = novoBloco
                 tmp = (long *)((char *)tmp + 16 + tmp[1]);
                 prevAlloc = tmp;
                 return &tmp[2];
