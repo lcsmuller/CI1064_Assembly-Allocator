@@ -57,11 +57,11 @@ int liberaMem(void *block)
         ret = 1; 
     }
 
-    long *prev = topoInicialHeap, 
-         *next = (long *)((char *)prev + 16 + prev[1]);
-    while (prev != topo) {
+    long *prev = topoInicialHeap; 
+    long *next = (long *)((char *)prev + 16 + prev[1]);
+    while (next != topo) {
         if (prev[0] == 0L && next[0] == 0L)
-            prev[1] += next[1];
+            prev[1] += next[1] + 16;
         prev = next;
         next = (long *)((char *)prev + 16 + prev[1]);
     }
