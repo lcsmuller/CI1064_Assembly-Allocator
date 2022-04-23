@@ -4,7 +4,7 @@
 
 static void *topoInicialHeap;
 static long *prevAlloc;
-#if 0
+
 void iniciaAlocador(void)
 {
     printf("\n");
@@ -15,7 +15,7 @@ void finalizaAlocador(void)
 {
     brk(topoInicialHeap);
 }
-#endif
+
 void *alocaMem(int num_bytes)
 {
     long *topo = sbrk(0), *tmp = prevAlloc;
@@ -24,23 +24,17 @@ void *alocaMem(int num_bytes)
     while (segunda_tentativa <= 1) {
         while (tmp != topo) {
             if (tmp[0] == 0L && tmp[1] >= num_bytes) {
-                if (tmp[1] >= num_bytes + 16) {
-                    tmp[0] = 1L;
+                tmp[0] = 1L;
 
+                /* verifica se é possível particionar o bloco */
+                if (tmp[1] >= num_bytes + 16) {
                     long *novoBloco = (long *)((char *)tmp + 16 + num_bytes);
                     novoBloco[0] = 0L;
                     novoBloco[1] = tmp[1] - num_bytes - 16;
                     
                     tmp[1] = num_bytes;
-                    tmp = (long *)((char *)tmp + 16 + tmp[1]);
-                    prevAlloc = tmp;
-                    
-                    return &tmp[2];
                 }
-                tmp[0] = 1L;
-                // da pra tirar esse tmp e colocar prevAlloc = novoBloco
-                tmp = (long *)((char *)tmp + 16 + tmp[1]);
-                prevAlloc = tmp;
+                prevAlloc = (long *)((char *)tmp + 16 + tmp[1]);
                 return &tmp[2];
             }
             tmp = (long *)((char *)tmp + 16 + tmp[1]);
@@ -61,7 +55,6 @@ void *alocaMem(int num_bytes)
     return tmp;
 }
 
-#if 0
 int liberaMem(void *block)
 {
     long *topo = sbrk(0), *tmp = block;
@@ -75,23 +68,28 @@ int liberaMem(void *block)
     long *prev = topoInicialHeap; 
     long *next = (long *)((char *)prev + 16 + prev[1]);
     while (next != topo) {
-        if (prev[0] == 0L && next[0] == 0L)
+        int x = 0;
+        while (prev[0] == 0L && next[0] == 0L && next != topo) {
             prev[1] += next[1] + 16;
+            next = (long *)((char *)prev + 16 + prev[1]);
+            x = 1;
+        }
         prev = next;
-        next = (long *)((char *)prev + 16 + prev[1]);
+        if (x == 0)
+            next = (long *)((char *)prev + 16 + prev[1]);
     }
 
     prevAlloc = (long *)(tmp[-1] + (char*)tmp);
     return ret;
 }
 
-void imprimeMapa(void)
+void imprimeMapa()
 {
     long *a = topoInicialHeap;
     void *topoAtual = sbrk(0);
     char c;
 
-    printf("imprimindo............\n");
+    printf("\nimprimindo...\n");
     while (a != topoAtual){
         printf("################");
         if (a[0] == 1)
@@ -105,4 +103,3 @@ void imprimeMapa(void)
     }
     putchar('\n');
 }
-#endif

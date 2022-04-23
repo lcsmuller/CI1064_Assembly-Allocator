@@ -9,7 +9,7 @@ LDFLAGS += -no-pie
 all: $(MAIN)
 
 $(MAIN): $(MAIN).c $(OBJS)
-	$(CC) $(CFLAGS) alocador.c $^ -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(MAIN).c: ;
 
