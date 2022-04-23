@@ -68,10 +68,15 @@ int liberaMem(void *block)
     long *prev = topoInicialHeap; 
     long *next = (long *)((char *)prev + 16 + prev[1]);
     while (next != topo) {
-        if (prev[0] == 0L && next[0] == 0L)
+        int x = 0;
+        while (prev[0] == 0L && next[0] == 0L && next != topo) {
             prev[1] += next[1] + 16;
+            next = (long *)((char *)prev + 16 + prev[1]);
+            x = 1;
+        }
         prev = next;
-        next = (long *)((char *)prev + 16 + prev[1]);
+        if (x == 0)
+            next = (long *)((char *)prev + 16 + prev[1]);
     }
 
     prevAlloc = (long *)(tmp[-1] + (char*)tmp);

@@ -25,7 +25,7 @@ int main(void)
     liberaMem(x);
     finalizaAlocador();
 #else
-    void *a, *b;
+    void *a, *b, *c, *d;
 
     iniciaAlocador();
     imprimeMapa();
@@ -41,11 +41,23 @@ int main(void)
     
     b = alocaMem(50);
     imprimeMapa();
+
+    c = alocaMem(30);
+    imprimeMapa();
+
+    d = alocaMem(38);
+    imprimeMapa();
     
-    // liberaMem(a);
-    // imprimeMapa();
+    liberaMem(a);
+    imprimeMapa();
+
+    liberaMem(c);
+    imprimeMapa();
 
     liberaMem(b);
+    imprimeMapa();
+
+    liberaMem(d);
     imprimeMapa();
 
 #endif
