@@ -8,10 +8,10 @@ int main(void)
     void *a, *b, *c, *d;
 
     iniciaAlocador();
-    //imprimeMapa();
+    imprimeMapa();
 
     a = alocaMem(100);
-    //imprimeMapa();
+    imprimeMapa();
     
     b = alocaMem(150);
     //imprimeMapa();

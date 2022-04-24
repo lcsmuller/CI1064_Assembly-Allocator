@@ -1,6 +1,8 @@
 .section .data
     topoInicialHeap:    .quad 0
     prevAlloc:          .quad 0
+.globl topoInicialHeap
+.globl prevAlloc
     str_init:           .string "Init printf() heap arena\n"
     str_cabc:           .string "################\n"
     str_info:           .string "imprimindo...\n"
@@ -140,7 +142,8 @@ alocaMem:
     fim_while1:
 
     # sinaliza como ocupado e armazena tam de memória a ser alocado
-    movq $16, %rdi
+    movq -8(%rbp), %rdi             # rdi := brk(0)
+    addq $16, %rdi
     movq $12, %rax
     syscall
     movq %rax, -16(%rbp)            # tmp := sbrk(16)
@@ -152,18 +155,22 @@ alocaMem:
     movq %rbx, (%rax)               # tmp[1] := num_bytes
 
     # aloca espaço de memória requisitado
-    movq %rbx, %rdi
+    movq $0, %rdi
+    movq $12, %rax
+    syscall                         
+    movq %rax, %rdi                 # rdi := brk(0)
+    addq %r8, %rdi                  # rdi := brk(0) + num_bytes
     movq $12, %rax
     syscall
-    movq %rax, -16(%rbp)           # tmp := sbrk(num_bytes)
+    movq %rax, -16(%rbp)            # tmp := sbrk(num_bytes)
 
     addq -16(%rbp), %rbx
-    movq %rbx, prevAlloc           # prevAlloc = (long *)(num_bytes + (char *)tmp)
+    movq %rbx, prevAlloc            # prevAlloc = (long *)(num_bytes + (char *)tmp)
 
     movq -16(%rbp), %rax
     addq $32, %rsp
     popq %rbp
-    ret                            # return tmp
+    ret                             # return tmp
 
 .globl liberaMem
 liberaMem:
