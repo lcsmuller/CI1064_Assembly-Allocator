@@ -142,32 +142,21 @@ alocaMem:
     fim_while1:
 
     # sinaliza como ocupado e armazena tam de memória a ser alocado
-    movq -8(%rbp), %rdi             # rdi := brk(0)
+    movq -8(%rbp), %rdi            # rdi := brk(0)
     addq $16, %rdi
+    addq %r8, %rdi
     movq $12, %rax
     syscall
-    movq %rax, -16(%rbp)            # tmp := sbrk(16)
+    movq %rax, prevAlloc            # prevAlloc = (long *)((char *)topo + 16 + num_bytes)
 
-    movq -16(%rbp), %rax            # rax := tmp
-    movq $1, (%rax)                 # tmp[0] := 1L
-    movq %r8, %rbx                  
-    addq $8, %rax                   # rax := tmp + 8
-    movq %rbx, (%rax)               # tmp[1] := num_bytes
+    movq -8(%rbp), %rax             # rax := topo
+    movq $1, (%rax)                 # topo[0] := 1L
+    addq $8, %rax                   # rax := topo + 8
+    movq %r8, (%rax)                # topo[1] := num_bytes
+    addq $8, %rax                   # rax := topo + 16
+    movq %rax, %r9
 
-    # aloca espaço de memória requisitado
-    movq $0, %rdi
-    movq $12, %rax
-    syscall                         
-    movq %rax, %rdi                 # rdi := brk(0)
-    addq %r8, %rdi                  # rdi := brk(0) + num_bytes
-    movq $12, %rax
-    syscall
-    movq %rax, -16(%rbp)            # tmp := sbrk(num_bytes)
-
-    addq -16(%rbp), %rbx
-    movq %rbx, prevAlloc            # prevAlloc = (long *)(num_bytes + (char *)tmp)
-
-    movq -16(%rbp), %rax
+    movq %r9, %rax
     addq $32, %rsp
     popq %rbp
     ret                             # return tmp
@@ -211,7 +200,7 @@ liberaMem:
         movq -32(%rbp), %rax    # rax := prev
         movq -40(%rbp), %rbx    # rbx := next
         cmpq %rbx, %rax         # while (prev != next)
-        je fim_while1
+        je fim_while3
 
         movq $0, -48(%rbp)      # x := 0
 
@@ -220,13 +209,13 @@ liberaMem:
             movq -40(%rbp), %rbx    # rbx := next
             
             cmpq $0, (%rax)         # while (prev[0] == 0)
-            jne fim_while2
+            jne fim_while4
 
             cmpq $0, (%rbx)         # while (next[0] == 0)
-            jne fim_while2
+            jne fim_while4
 
             cmpq %rbx, %rax         # while (prev != next)
-            je fim_while2
+            je fim_while4
 
             addq $8, %rax           # rax := prev + 8
             addq $8, %rbx           # rbx := next + 8
@@ -254,17 +243,16 @@ liberaMem:
         movq -40(%rbp), %rax   
         movq %rax, -32(%rbp)        # prev := next
 
-        if5:
-            movq -48(%rbp), %rbx    # rbx := x
-            cmpq $0, %rbx           # if(x == 0)
-            jne fim_if2
+        movq -48(%rbp), %rbx    # rbx := x
+        cmpq $0, %rbx           # if(x == 0)
+        jne fim_if5
 
-            movq -32(%rbp), %rax    # rax := prev
-            movq %rax, %rcx         # rcx := prev
-            addq $8, %rax           # rax := prev + 8
-            addq (%rax), %rcx       # rcx := prev + prev[1]
-            addq $16, %rcx          # rcx := prev + prev[1] + 16
-            movq %rcx, -40(%rbp)    # next = (long *)((char *)prev + 16 + prev[1])
+        movq -32(%rbp), %rax    # rax := prev
+        movq %rax, %rcx         # rcx := prev
+        addq $8, %rax           # rax := prev + 8
+        addq (%rax), %rcx       # rcx := prev + prev[1]
+        addq $16, %rcx          # rcx := prev + prev[1] + 16
+        movq %rcx, -40(%rbp)    # next = (long *)((char *)prev + 16 + prev[1])
         fim_if5:
 
         jmp while3

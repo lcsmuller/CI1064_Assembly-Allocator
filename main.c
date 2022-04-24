@@ -8,36 +8,41 @@ int main(void)
     void *a, *b, *c, *d;
 
     iniciaAlocador();
-    imprimeMapa();
+    // imprimeMapa();
 
     a = alocaMem(100);
-    imprimeMapa();
+    printf("%p\n", a);
+    // imprimeMapa();
     
     b = alocaMem(150);
+    printf("%p, %ld\n", b, b - a);
     //imprimeMapa();
     
-    liberaMem(b);
+    // liberaMem(b);
     //imprimeMapa();
     
     b = alocaMem(50);
+    printf("%p, %ld\n", b, b - a);
     //imprimeMapa();
 
     c = alocaMem(30);
+    printf("%p, %ld\n", c, c - b);
     //imprimeMapa();
 
     d = alocaMem(38);
+    printf("%p, %ld\n", d, d - c);
     //imprimeMapa();
     
-    liberaMem(a);
+    //liberaMem(a);
     //imprimeMapa();
 
-    liberaMem(c);
+    //liberaMem(c);
     //imprimeMapa();
 
-    liberaMem(b);
+    //liberaMem(b);
     //imprimeMapa();
 
-    liberaMem(d);
+    //liberaMem(d);
     //imprimeMapa();
 
     return EXIT_SUCCESS;

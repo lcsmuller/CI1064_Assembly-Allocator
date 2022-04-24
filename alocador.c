@@ -44,15 +44,13 @@ void *alocaMem(int num_bytes)
     }
 
     /* sinaliza como ocupado e armazena tam de memória a ser alocado */
-    tmp = sbrk(16);
-    tmp[0] = 1L;
-    tmp[1] = num_bytes;
-    /* aloca espaço de memória requisitado */
-    tmp = sbrk(num_bytes);
+    brk((char *)topo + 16 + num_bytes);
+    topo[0] = 1L;
+    topo[1] = num_bytes;
 
-    prevAlloc = (long *)(num_bytes + (char *)tmp);
+    prevAlloc = (long *)((char *)topo + 16 + num_bytes);
 
-    return tmp;
+    return &topo[2];
 }
 
 int liberaMem(void *block)
