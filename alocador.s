@@ -1,9 +1,11 @@
 .section .data
-    topoInicialHeap: .quad 0
-    prevAlloc: .quad 0
-str_init: .string "Init printf() heap arena\n"
-str_info: .string "imprimindo ...\n"
-str_cabc: .string "################\n"
+    topoInicialHeap:    .quad 0
+    prevAlloc:          .quad 0
+    str_init:           .string "Init printf() heap arena\n"
+    str_cabc:           .string "################\n"
+    str_info:           .string "imprimindo...\n"
+    plus_char:          .byte 43
+    minus_char:         .byte 45
 
 .section .text
 
@@ -44,54 +46,111 @@ finalizaAlocador:
 alocaMem:
     pushq %rbp
     movq %rsp, %rbp
-    subq $24, %rsp # -8(%rbp) := topo ; -16(%rbp) := tmp ;
-                   # -24(%rbp) := segunda_tentativa
+
+    subq $32, %rsp # -8(%rbp) := topo ; -16(%rbp) := tmp ;
+                   # -24(%rbp) := segunda_tentativa ;
+                   # -32(%rbp) := novoBloco
     movq %rdi, %r8 # num_bytes
 
     movq $0, %rdi
     movq $12, %rax
-    syscall
+    syscall                         # %rax := sbrk(0)
     movq %rax, -8(%rbp)             # topo := sbrk(0)
+
     movq prevAlloc, %rax
     movq %rax, -16(%rbp)            # tmp := prevAlloc
+
     movq $0, -24(%rbp)              # segunda_tentativa := 0
 
-    L0:
-        movq -24(%rbp), %rax
+    while1:
+        movq -24(%rbp), %rax        # rax = segunda_tentativa
         cmpq $1, %rax
-        jg EL0                      # while (segunda_tentativa <= 1)
+        jg fim_while1               # while (segunda_tentativa <= 1)
 
-        L1:
-            movq -8(%rbp), %rax
-            movq -16(%rbp), %rbx
-            cmpq %rax, %rbx         # while (tmp != topo)
-            je EL1
+        while2:
+            movq -16(%rbp), %rbx    # rbx = tmp
+            cmpq -8(%rbp), %rbx     # while (tmp != topo)
+            je fim_while2
 
-            # TODO: if (tmp[0] == 0L && tmp[1] >= num_bytes)
+            if1:                
+                cmpq $0, (%rbx)
+                jne fim_if1         # if (tmp[0] == 0)
 
-            movq -16(%rbp), %rax
-            movq 8(%rax), %rax     # %rax := tmp[1]
-            addq $16, %rax         # %rax := tmp[1] + 16
-            addq %rax, -16(%rbp)   # tmp := (long *)((char *)tmp + 16 + tmp[1])
-            jmp L1
-        EL1:
+                if2:                    
+                    movq %rbx, %rcx     # rcx := tmp        (rcx) := tmp[0]
+                    addq $8, %rcx       # rcx := tmp + 8    (rcx) := tmp[1]
+                    cmpq %r8, (%rcx)    # if (tmp[1] >= num_bytes)
+                    jl fim_if2            
+
+                    subq $8, %rcx       # (rcx) := tmp[0]
+                    movq $1, (%rcx)     # tmp[0] := 1
+
+                    if3:               
+                        addq $8, %rcx       # (rcx) := tmp[1]
+                        movq %r8, %rax      # rax := num_bytes
+                        addq $16, %rax      # rax := num_bytes + 16
+                        cmpq %rax, (%rcx)   # if (tmp[1] >= num_bytes + 16)
+                        jl fim_if3
+
+                        movq %rbx, %rcx         # rcx := tmp
+                        addq %rax, %rcx         # tmp := tmp + 16 + num_bytes
+                        movq %rcx, -32(%rbp)    # novoBloco := tmp + 16 + num_bytes
+
+                        movq $0, (%rcx)         # novoBloco[0] := 0
+                        
+                        addq $8, %rcx           # (rcx) := novoBloco[1]
+                        addq $8, %rbx           # (rbx) := tmp[1]
+                        movq (%rbx), %rax
+                        movq %rax, (%rcx)     # novoBLoco[1] := tmp[1]
+                        subq $16, (%rcx)        # novoBloco[1] := tmp[1] - 16
+                        subq %r8, (%rcx)        # novoBloco[1] := tmp[1] - 16 - num_bytes
+                        
+                        movq %r8, (%rbx)        # tmp[1] := num_bytes
+                    fim_if3:
+                    
+                    movq -16(%rbp), %rcx    # rcx := tmp
+                    movq %rcx, %rbx
+                    addq $8, %rbx           # (rbx) := tmp[1]
+                    addq (%rbx), %rcx       # rcx := tmp + tmp[1]
+                    addq $16, %rcx          # rcx := tmp + tmp[1] + 16
+                    movq %rcx, prevAlloc    # prevAlloc := (long *)((char *)tmp + 16 + tmp[1])
+                    
+                    addq $8, %rbx           # (rbx) := tmp[2]
+                    movq %rbx, %rax         # rax := &tmp[2]
+                    addq $32, %rsp
+                    popq %rbp
+                    ret                     # return &tmp[2]
+                fim_if2:
+            fim_if1:
+
+            movq -16(%rbp), %rax    # rax := tmp
+            movq %rax, %rbx
+            addq $8, %rbx           # (rbx) := tmp[1]
+            addq (%rbx), %rax       # rax := tmp + tmp[1]
+            addq $16, %rax          # rax := tmp + tmp[1] + 16
+            movq %rax, -16(%rbp)    # tmp := (long *)((char *)tmp + 16 + tmp[1])
+            jmp while2
+        fim_while2:
 
         movq topoInicialHeap, %rax
-        movq %rax, -16(%rbp)       # tmp := topoInicialHeap
-        addq $1, -24(%rbp)         # ++segunda_tentativa
+        movq %rax, -16(%rbp)        # tmp := topoInicialHeap
+        addq $1, -24(%rbp)          # ++segunda_tentativa
 
-        jmp L0
-    EL0:
+        jmp while1
+    fim_while1:
 
     # sinaliza como ocupado e armazena tam de memória a ser alocado
     movq $16, %rdi
     movq $12, %rax
     syscall
-    movq %rax, -16(%rbp)           # tmp := sbrk(16)
-    movq -16(%rbp), %rax
-    movq $1, (%rax)                # tmp[0] := 1L
-    movq %r8, %rbx
-    movq %rbx, 8(%rax)             # tmp[8] := num_bytes
+    movq %rax, -16(%rbp)            # tmp := sbrk(16)
+
+    movq -16(%rbp), %rax            # rax := tmp
+    movq $1, (%rax)                 # tmp[0] := 1L
+    movq %r8, %rbx                  
+    addq $8, %rax                   # rax := tmp + 8
+    movq %rbx, (%rax)               # tmp[1] := num_bytes
+
     # aloca espaço de memória requisitado
     movq %rbx, %rdi
     movq $12, %rax
@@ -99,10 +158,10 @@ alocaMem:
     movq %rax, -16(%rbp)           # tmp := sbrk(num_bytes)
 
     addq -16(%rbp), %rbx
-    movq %rbx, prevAlloc           # prevAlloc = (long *)(num_bytes + tmp)
+    movq %rbx, prevAlloc           # prevAlloc = (long *)(num_bytes + (char *)tmp)
 
     movq -16(%rbp), %rax
-    addq $24, %rsp
+    addq $32, %rsp
     popq %rbp
     ret                            # return tmp
 
@@ -110,50 +169,108 @@ alocaMem:
 liberaMem:
     pushq %rbp
     movq %rsp, %rbp
-    subq $40, %rsp # -8(%rbp) := topo ; -16(%rbp) := tmp ; -24(%rbp) := ret
-                   # -32(%rbp) := prev ; -40(%rbp) := next
+    subq $48, %rsp  # -8(%rbp) := topo ; -16(%rbp) := tmp ; -24(%rbp) := ret
+                    # -32(%rbp) := prev ; -40(%rbp) := next ; -48(%rbp) := x
+
+    movq %rdi, -16(%rbp)            # tmp := block
+    movq $0, -24(%rbp)              # ret := 0
+    movq $0, -48(%rbp)              # x := 0
 
     movq $0, %rdi
     movq $12, %rax
     syscall
     movq %rax, -8(%rbp)             # topo := sbrk(0)
-    movq %rdi, %rax
-    movq %rax, -16(%rbp)            # tmp := block
-    movq $0, -24(%rbp)              # ret := 0
+    
     movq topoInicialHeap, %rax
     movq %rax, -32(%rbp)            # prev := topoInicialHeap
-    movq %rax, -40(%rbp)
-    movq -40(%rbp), %rax
-    movq 8(%rax), %rax              # %rax := prev[1]
-    addq $16, %rax                  # %rax := 16 + prev[1]
-    addq %rax, -40(%rbp)            # next := prev + 16 + prev[1]
 
-    movq -16(%rbp), %rax
-    movq -16(%rax), %rax
-    movq $1, %rbx
-    cmpq %rax, %rbx            # if (tmp[-2] != 1)
-    jne EIF0
-        movq $0, -16(%rax)     # tmp[-2] := 0
-        movq $1, -24(%rbp)     # ret := 1
-    EIF0:
+    movq %rax, %rbx                 # rbx := prev
+    addq $8, %rax                   # rax := prev + 8   (rax) := prev[1]
+    addq (%rax), %rbx               # rbx := prev + prev[1]
+    addq $16, %rbx                  # rbx := prev + prev[1] + 16
+    movq %rbx, -40(%rbp)            # next := (long *)((char *)prev + 16 + prev[1])
 
-    # TODO: loop while
-    # L2:
-    #     movq -32(%rbp), %rax
-    #     movq -40(%rbp), %rbx
-    #     cmpq %rbx, %rax        # while (prev != next)
-    #     je EL2
-    #
-    #     jmp L2
-    # EL2:
+    if4:
+        movq -16(%rbp), %rax
+        subq $16, %rax              # rax = tmp - 16
+        cmpq $1, (%rax)             # if (tmp[-2] != 1)
+        jne fim_if4
 
-    movq -16(%rbp), %rax
-    movq -8(%rax), %rax
-    addq -16(%rbp), %rax
-    movq %rax, prevAlloc       # prevAlloc = (long *)(tmp[-1] + (char *)tmp)
+        movq $0, (%rax)             # tmp[-2] := 0
+        movq $1, -24(%rbp)          # ret := 1
+    fim_if4:
+
+    while3:
+        movq -32(%rbp), %rax    # rax := prev
+        movq -40(%rbp), %rbx    # rbx := next
+        cmpq %rbx, %rax         # while (prev != next)
+        je fim_while1
+
+        movq $0, -48(%rbp)      # x := 0
+
+        while4:
+            movq -32(%rbp), %rax    # rax := prev
+            movq -40(%rbp), %rbx    # rbx := next
+            
+            cmpq $0, (%rax)         # while (prev[0] == 0)
+            jne fim_while2
+
+            cmpq $0, (%rbx)         # while (next[0] == 0)
+            jne fim_while2
+
+            cmpq %rbx, %rax         # while (prev != next)
+            je fim_while2
+
+            addq $8, %rax           # rax := prev + 8
+            addq $8, %rbx           # rbx := next + 8
+            movq $0, %rcx
+            addq (%rax), %rcx       # rcx := prev[1]
+            addq (%rbx), %rcx       # rcx := prev[1] + next[1]
+            addq $16, %rcx          # rcx := prev[1] + next[1] + 16
+            movq %rcx, (%rax)       # prev[1] := prev[1] + next[1] + 16
+
+            movq -32(%rbp), %rax    # rax := prev
+            movq %rax, %rcx         # rcx := prev
+            addq $8, %rax           # rax := prev + 8
+            addq (%rax), %rcx       # rcx := prev + prev[1]
+            addq $16, %rcx          # rcx := prev + prev[1] + 16
+            movq %rcx, -40(%rbp)    # next = (long *)((char *)prev + 16 + prev[1])
+
+            movq $1, -48(%rbp)      # x := 1
+
+            jmp while4
+        fim_while4:
+
+        # prev = next
+        # se (x == 0)
+            # next = ...
+        movq -40(%rbp), %rax   
+        movq %rax, -32(%rbp)        # prev := next
+
+        if5:
+            movq -48(%rbp), %rbx    # rbx := x
+            cmpq $0, %rbx           # if(x == 0)
+            jne fim_if2
+
+            movq -32(%rbp), %rax    # rax := prev
+            movq %rax, %rcx         # rcx := prev
+            addq $8, %rax           # rax := prev + 8
+            addq (%rax), %rcx       # rcx := prev + prev[1]
+            addq $16, %rcx          # rcx := prev + prev[1] + 16
+            movq %rcx, -40(%rbp)    # next = (long *)((char *)prev + 16 + prev[1])
+        fim_if5:
+
+        jmp while3
+    fim_while3:
+
+    movq -16(%rbp), %rax        # rax := tmp
+    movq %rax, %rbx             # rbx := tmp
+    subq $8, %rax               # rax := tmp - 8
+    addq (%rax), %rbx           # rbx := tmp + tmp[-1]
+    movq %rbx, prevAlloc        # prevAlloc = (long *)(tmp[-1] + (char *)tmp)
 
     movq -24(%rbp), %rax
-    addq $40, %rsp
+    addq $48, %rsp
     popq %rbp
     ret                        # return ret
 
@@ -165,6 +282,7 @@ imprimeMapa:
 
     movq topoInicialHeap, %rax
     movq %rax, -8(%rbp)        # a := topoInicialHeap
+
     movq $0, %rdi              # primeiro parâmetro brk
     movq $12, %rax             # No de syscall do brk
     syscall                    # brk(0)
@@ -174,26 +292,56 @@ imprimeMapa:
     movq $0, %rax
     movq $str_info, %rdi
     call printf
-    L3:
+
+    while5:
         movq -8(%rbp), %rax
         movq -16(%rbp), %rbx
         cmpq %rbx, %rax        # while (a != topoAtual)
-        je EL3
+        je fim_while5
 
         # print '################'
         movq $0, %rax
         movq $str_cabc, %rdi
         call printf
 
-        # TODO: condicional e loop p/ printar caracteres '+' ou '-'
+        # condicional e loop p/ printar caracteres '+' ou '-'
+        movq -8(%rbp), %rax     # rax := a
+        cmpq $1, (%rax)
+        jne minus_sign          # se a[0] == 0 vai pra minus_sign
 
+        mov plus_char, %r10     # r10 = '+'
+        jmp for
+
+        minus_sign:
+        mov minus_char, %r10    # r10 = '-'
+
+        movq $0, %r11           # r11 := i = 0
+        for:
+            movq -8(%rbp), %rax     # rax := a
+            addq $8, %rax           # (rax) := a[1]
+            cmpq (%rax), %r11       # i < a[1]
+            jge fim_for
+
+            movq %r10, %rdi
+            call putchar            # printa + ou -
+
+            addq $1, %r11           # i++
+
+            jmp for
+        fim_for:
+
+        movq -8(%rbp), %rbx     # rbx := a
         movq -8(%rbp), %rax
-        movq 8(%rax), %rax     # %rax := a[1]
-        addq $16, %rax         # %rax := a[1] + 16
-        addq %rax, -8(%rbp)    # a := (long *)((char *)a + 16 + a[1])
+        addq $8, %rax           # (rax) := a[1]
+        addq (%rax), %rbx       # rbx := a + a[1]
+        addq $16, %rax          # rbx := a+ a[1] + 16
+        movq %rbx, -8(%rbp)     # a := (long *)((char *)a + 16 + a[1])
 
-        jmp L3
-    EL3:
+        jmp while5
+    fim_while5:
+
+    movq $10, %rdi  # char de fim de linha
+    call putchar
 
     addq $24, %rsp
     popq %rbp
