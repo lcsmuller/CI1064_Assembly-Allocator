@@ -175,10 +175,9 @@ liberaMem:
     movq %rax, -8(%rbp)             # topo := sbrk(0)
 
     movq -16(%rbp), %rax
-    subq $16, %rax
-    cmpq $1, (%rax)                 # if (tmp[-2] == 1L)
+    cmpq $1, -16(%rax)              # if (tmp[-2] == 1L)
     jne fim_if4
-    movq $0, (%rax)                 # tmp[-2] := 0L
+    movq $0, -16(%rax)              # tmp[-2] := 0L
     movq $1, -24(%rbp)              # ret := 1
     fim_if4:
     
@@ -209,19 +208,16 @@ liberaMem:
             cmpq $0, %rax
             jne fim_while4          # next[0] == 0L && ...
 
+            movq -40(%rbp), %rax
             movq -8(%rbp), %rbx
             cmpq %rax, %rbx         # while (next != topo)
             je fim_while4
 
-            movq -32(%rbp), %rbx    # rbx := prev
-            addq $8, %rbx           # rbx := prev + 1
-            movq (%rbx), %rcx       # rcx = prev[1]
-            addq $16, %rcx          # rcx := prev[1] + 16
-            addq %rcx, (%rbx)       # prev[1] := prev[1] + 16
-            addq -40(%rbp), %rax    # rax := next
-            addq $8, %rax           # rax := next + 1
-            movq (%rax), %rcx       # rcx := next[1]
-            addq %rcx, (%rbx)       # prev[1] := next[1] + prev[1] + 16
+            movq -40(%rbp), %rax    # rax := next
+            movq 8(%rax), %rbx      # rbx := next[1]
+            movq -32(%rbp), %rax    # rbx := prev
+            addq %rbx, 8(%rax)      # prev[1] += next[1]
+            addq $16, 8(%rax)       # prev[1] += next[1] + 16
 
             movq -32(%rbp), %rax    # rax := prev
             addq 8(%rax), %rax      # rax := prev + prev[1]
@@ -247,10 +243,8 @@ liberaMem:
     fim_while3:
 
     movq -16(%rbp), %rax        # rax := tmp
-    movq %rax, %rbx             # rbx := tmp
-    subq $8, %rax               # rax := tmp - 8
-    addq (%rax), %rbx           # rbx := tmp + tmp[-1]
-    movq %rbx, prevAlloc        # prevAlloc = (long *)(tmp[-1] + (char *)tmp)
+    addq -8(%rax), %rax         # rax := tmp + tmp[-1]
+    movq %rax, prevAlloc        # prevAlloc = (long *)(tmp[-1] + (char *)tmp)
 
     movq -24(%rbp), %rax
     addq $48, %rsp

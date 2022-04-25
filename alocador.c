@@ -68,7 +68,7 @@ int liberaMem(void *block)
     while (next != topo) {
         int x = 0;
         while (prev[0] == 0L && next[0] == 0L && next != topo) {
-            prev[1] += next[1] + 16;
+            prev[1] = prev[1] + next[1] + 16;
             next = (long *)((char *)prev + 16 + prev[1]);
             x = 1;
         }
