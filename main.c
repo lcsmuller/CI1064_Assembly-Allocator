@@ -5,6 +5,7 @@
 
 int main(void)
 {
+#if 1
     void *a, *b, *c, *d, *e;
 
     iniciaAlocador();
@@ -47,6 +48,35 @@ int main(void)
     imprimeMapa();
 
     finalizaAlocador();
+#else
+    void *a,*b ,*c, *d, *e, *f;
+    int *coisa[50];
+
+    iniciaAlocador();
+
+    for (int i = 0; i < 50; ++i){
+        coisa[i] = (int*) alocaMem(i*sizeof(int));   
+        printf("aqui tem %i \n" ,i);
+        fflush(stdout);  
+        imprimeMapa();
+    }
+
+    for (int i = 0; i < 50; i+= 2){
+        liberaMem(coisa[i]);   
+        printf("aqui liberamos %i \n" ,i);
+        fflush(stdout);  
+        imprimeMapa();
+    }
+
+    for (int i = 1; i < 50; i+= 2){
+        liberaMem(coisa[i]);   
+        printf("aqui liberamos %i \n" ,i);
+        fflush(stdout);  
+        imprimeMapa();
+    }
+
+    finalizaAlocador();
+#endif
 
     return EXIT_SUCCESS;
 }
