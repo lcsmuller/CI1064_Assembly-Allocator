@@ -81,7 +81,7 @@ int liberaMem(void *block)
     return ret;
 }
 
-void imprimeMapa()
+void imprimeMapa(void)
 {
     long *a = topoInicialHeap;
     void *topoAtual = sbrk(0);
