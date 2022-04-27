@@ -80,7 +80,7 @@ alocaMem:
             cmpq %r8, 8(%rax)       # if (tmp[1] >= num_bytes)
             jl fim_if1            
 
-            movq -16(%rbp), %rax    # rcx := tmp
+            movq -16(%rbp), %rax    # rax := tmp
             movq $1, (%rax)         # tmp[0] := 1
 
             movq %r8, %rax          # rax := num_bytes
@@ -112,7 +112,7 @@ alocaMem:
             movq %rax, prevAlloc    # prevAlloc := (long *)((char *)tmp + tmp[1] + 16)
             
             movq -16(%rbp), %rax    # rax := tmp
-            addq $16, %rax          # rax := tmp + 2
+            addq $16, %rax          # rax := tmp + 16
             addq $32, %rsp
             popq %rbp
             ret                     # return &tmp[2]
@@ -154,8 +154,8 @@ alocaMem:
 liberaMem:
     pushq %rbp
     movq %rsp, %rbp
-    subq $48, %rsp  # -8(%rbp) := topo ; -16(%rbp) := tmp ; -24(%rbp) := ret
-                    # -32(%rbp) := prev ; -40(%rbp) := next ; -48(%rbp) := x
+    subq $40, %rsp  # -8(%rbp) := topo ; -16(%rbp) := tmp ; -24(%rbp) := ret
+                    # -32(%rbp) := prev ; -40(%rbp) := next
 
     movq %rdi, -16(%rbp)            # tmp := block
     movq $0, -24(%rbp)              # ret := 0
@@ -176,18 +176,16 @@ liberaMem:
     movq topoInicialHeap, %rax
     movq %rax, -32(%rbp)            # prev := topoInicialHeap
 
-    movq %rax, %rbx                 # rbx := prev
-    addq 8(%rax), %rbx              # rbx := prev + prev[1]
-    addq $16, %rbx                  # rbx := prev + prev[1] + 16
-    movq %rbx, -40(%rbp)            # next := (long *)((char *)prev + prev[1] + 16)
+    addq 8(%rax), %rax              # rax := prev + prev[1]
+    addq $16, %rax                  # rax := prev + prev[1] + 16
+    movq %rax, -40(%rbp)            # next := (long *)((char *)prev + prev[1] + 16)
 
     while3:
         movq -8(%rbp), %rax
-        movq -40(%rbp), %rbx
-        cmpq %rax, %rbx             # while (next != topo)
+        cmpq -40(%rbp), %rax        # while (next != topo)
         je fim_while3
 
-        movq $0, -48(%rbp)          # x := 0
+        movq $0, %r8                # x := 0
 
         while4:
             movq -32(%rbp), %rax
@@ -198,9 +196,8 @@ liberaMem:
             cmpq $0, (%rax)
             jne fim_while4          # next[0] == 0L && ...
 
-            movq -40(%rbp), %rax
-            movq -8(%rbp), %rbx
-            cmpq %rax, %rbx         # while (next != topo)
+            movq -8(%rbp), %rax
+            cmpq -40(%rbp), %rax    # while (next != topo)
             je fim_while4
 
             movq -40(%rbp), %rax
@@ -214,14 +211,14 @@ liberaMem:
             addq $16, %rax          # rax := prev + prev[1] + 16
             movq %rax, -40(%rbp)    # next = (long *)((char *)prev + prev[1] + 16)
 
-            movq $1, -48(%rbp)      # x := 1
+            movq $1, %r8            # x := 1
             jmp while4
         fim_while4:
 
         movq -40(%rbp), %rax
         movq %rax, -32(%rbp)        # prev = next
 
-        cmpq $0, -48(%rbp)
+        cmpq $0, %r8
         jne fim_if4                 # if (x == 0)
         movq -32(%rbp), %rax        # rax := prev
         addq 8(%rax), %rax          # rax := prev + prev[1]
@@ -237,7 +234,7 @@ liberaMem:
     movq %rax, prevAlloc        # prevAlloc = (long *)(tmp[-1] + (char *)tmp)
 
     movq -24(%rbp), %rax
-    addq $48, %rsp
+    addq $40, %rsp
     popq %rbp
     ret                        # return ret
 
