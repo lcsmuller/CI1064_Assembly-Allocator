@@ -7,7 +7,7 @@ static long *prevAlloc;
 
 void iniciaAlocador(void)
 {
-    printf("\n");
+    printf("Init printf() heap arena\n");
     prevAlloc = topoInicialHeap = sbrk(0);
 }
 
@@ -87,7 +87,6 @@ void imprimeMapa()
     void *topoAtual = sbrk(0);
     char c;
 
-    printf("\nimprimindo...\n");
     while (a != topoAtual){
         printf("################");
         if (a[0] == 1)
@@ -99,5 +98,6 @@ void imprimeMapa()
 
         a = (long *)((char *)a + 16 + a[1]);
     }
+    putchar('\n');
     putchar('\n');
 }

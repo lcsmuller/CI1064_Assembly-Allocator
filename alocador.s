@@ -5,7 +5,6 @@
 .globl prevAlloc
     str_init:           .string "Init printf() heap arena\n"
     str_cabc:           .string "################"
-    # str_info:           .string "\nimprimindo...\n"
     plus_char:          .byte 43
     minus_char:         .byte 45
 
@@ -264,11 +263,6 @@ imprimeMapa:
     movq $12, %rax             # No de syscall do brk
     syscall                    # brk(0)
     movq %rax, -16(%rbp)       # topoAtual := sbrk(0)
-
-    # print 'imprimindo ...'
-    # movq $0, %rax
-    # movq $str_info, %rdi
-    # call printf
 
     while5:
         movq -8(%rbp), %rax
