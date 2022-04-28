@@ -19,16 +19,20 @@ void *alocaMem(int num_bytes)
 {
     long *topo = sbrk(0), *tmp = topoInicialHeap, *maior = tmp;
 
+    /* seleciona primeiro bloco livre como maior */
     while (tmp != topo && (maior[0] == 1 && tmp[0] == 1))
         tmp = (long *)((char *)tmp + 16 + tmp[1]);
     maior = tmp;
 
+    /* itera a heap em busca do maior bloco (até o fim) */
     while (tmp != topo) {
         if (tmp[0] == 0L && tmp[1] > maior[1])
             maior = tmp;
         tmp = (long *)((char *)tmp + 16 + tmp[1]);
     }
 
+    /* aloca o bloco de tam num_bytes no 'maior' e se sobrar espaço 
+     * particiona o bloco */
     if (maior != topo && (maior[1] >= num_bytes + 16)) {
         maior[0] = 1L;
         /* verifica se é possível particionar o bloco */
