@@ -31,6 +31,14 @@ void *alocaMem(int num_bytes)
 
     if (maior != topo && (maior[1] >= num_bytes + 16)) {
         maior[0] = 1L;
+        /* verifica se é possível particionar o bloco */
+        if (maior[1] >= num_bytes + 16) {
+            long *novoBloco = (long *)((char *)maior + 16 + num_bytes);
+            novoBloco[0] = 0L;
+            novoBloco[1] = maior[1] - num_bytes - 16;
+            
+            maior[1] = num_bytes;
+        }
         return &maior[2];
     }
 

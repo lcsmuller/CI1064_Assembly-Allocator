@@ -48,8 +48,8 @@ alocaMem:
     pushq %rbp
     movq %rsp, %rbp
 
-    subq $32, %rsp # -8(%rbp) := topo ; -16(%rbp) := tmp ;
-                   # -24(%rbp) := maior ; -32(%rbp) := num_bytes
+    subq $40, %rsp # -8(%rbp) := topo ; -16(%rbp) := tmp ;
+                   # -24(%rbp) := maior ; -32(%rbp) := num_bytes ; -40(%rbp) := novoBloco
     movq %rdi, -32(%rbp)
 
     movq $0, %rdi
@@ -125,8 +125,32 @@ alocaMem:
     movq -24(%rbp), %rax    # rax := maior
     movq $1, (%rax)         # maior[0] := 1
 
+    movq -32(%rbp), %rax    # rax := num_bytes
+    addq $16, %rax          # rax := num_bytes + 16
+    movq -24(%rbp), %rbx    # rbx := maior
+    cmpq %rax, 8(%rbx)      # if (maior[1] >= num_bytes + 16)
+    jl fim_if7
+
+    movq -24(%rbp), %rax    # rax := maior
+    addq $16, %rax          # maior := maior + 16
+    addq -32(%rbp), %rax    # maior := maior + 16 + num_bytes
+    movq %rax, -40(%rbp)    # novoBloco := maior + 16 + num_bytes
+
+    movq $0, (%rax)         # novoBloco[0] := 0
+    
+    movq -24(%rbp), %rbx
+    movq 8(%rbx), %rbx      # rbx := maior[1]
+    subq -32(%rbp), %rbx    # rbx := maior[1] - num_bytes
+    subq $16, %rbx          # rbx := maior[1] - num_bytes - 16
+    movq %rbx, 8(%rax)      # novoBloco[1] = maior[1] - num_bytes - 16
+
+    movq -24(%rbp), %rax
+    movq -32(%rbp), %rbx
+    movq %rbx, 8(%rax)      # maior[1] := num_bytes
+    fim_if7:
+
     addq $16, %rax          # rax := topo + 2
-    addq $32, %rsp
+    addq $40, %rsp
     popq %rbp
     ret                     # return &topo[2]
     fim_if2:
@@ -144,7 +168,7 @@ alocaMem:
     movq %rbx, 8(%rax)              # topo[1] := num_bytes
 
     addq $16, %rax                  # rax := topo + 2
-    addq $32, %rsp
+    addq $40, %rsp
     popq %rbp
     ret                             # return &topo[2]
 
