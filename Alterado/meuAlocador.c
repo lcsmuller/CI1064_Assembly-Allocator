@@ -29,7 +29,7 @@ void *alocaMem(int num_bytes)
         tmp = (long *)((char *)tmp + 16 + tmp[1]);
     }
 
-    if (maior[1] >= num_bytes + 16) {
+    if (maior != topo && (maior[1] >= num_bytes + 16)) {
         maior[0] = 1L;
         return &maior[2];
     }

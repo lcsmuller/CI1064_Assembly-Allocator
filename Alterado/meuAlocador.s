@@ -70,7 +70,7 @@ alocaMem:
         cmpq $1, (%rax)
         jne fim_while1          # if (maior[0] == 1) && ...
 
-        movq -16(%rbp), %rax    # rax = maior
+        movq -16(%rbp), %rax    # rax = tmp
         cmpq $1, (%rax)
         jne fim_while1          # if (tmp[0] == 1)
 
@@ -97,8 +97,8 @@ alocaMem:
         movq -16(%rbp), %rax    # rax := tmp
         movq -24(%rbp), %rbx    # rbx := maior
         movq 8(%rbx), %rbx      # rbx := maior[1]
-        cmpq %rbx, 8(%rax)      # if (tmp[1] >= maior[1])
-        jl fim_if1            
+        cmpq %rbx, 8(%rax)      # if (tmp[1] > maior[1])
+        jle fim_if1            
         
         movq -16(%rbp), %rax
         movq %rax, -24(%rbp)    # maior := tmp
@@ -111,6 +111,10 @@ alocaMem:
 
         jmp while2
     fim_while2:
+
+    movq -24(%rbp), %rax    # rax = maior
+    cmpq -8(%rbp), %rax     # if (tmp != maior) && ...
+    je fim_if2
 
     movq -32(%rbp), %rax    # rax := num_bytes
     addq $16, %rax          # rax := num_bytes + 16
