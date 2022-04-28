@@ -1,7 +1,7 @@
 CC ?= gcc
 
-OBJS  := alocador.o
-MAIN := main
+OBJS := meuAlocador.o
+MAIN ?= avalia
 
 CFLAGS += -Wall -Wextra -Wpedantic -g
 
